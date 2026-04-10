@@ -5,9 +5,9 @@ import { getFrontend } from "siyuan";
 
 const SCRIPT_ID = "formula-enhance-mathlive-script";
 const DESKTOP_SCRIPT_SRC =
-  "/plugins/siyuan-plugin-formula-enhance/asset/vendor/mathlive/mathlive.min.js";
+  "/plugins/siyuan-plugin-texit/asset/vendor/mathlive/mathlive.min.js";
 const MOBILE_SCRIPT_SRC =
-  "https://cdn.jsdelivr.net/gh/Asianfleet/siyuan-plugin-formula-enhance@main/asset/vendor/mathlive/mathlive.min.js";
+  "https://cdn.jsdelivr.net/gh/Asianfleet/siyuan-plugin-texit@main/asset/vendor/mathlive/mathlive.min.js";
 
 let pendingLoad: Promise<void> | null = null;
 
