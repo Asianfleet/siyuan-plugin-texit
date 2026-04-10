@@ -1,0 +1,48 @@
+{
+  "name": "siyuan-plugin-texit",
+  "author": "Asianfleet",
+  "url": "https://github.com/Asianfleet/siyuan-plugin-texit",
+  "version": "0.1.0",
+  "minAppVersion": "2.9.0",
+  "backends": [
+    "windows",
+    "linux",
+    "darwin",
+    "ios",
+    "android",
+    "harmony",
+    "docker"
+  ],
+  "frontends": [
+    "desktop",
+    "mobile",
+    "browser-desktop",
+    "browser-mobile",
+    "desktop-window"
+  ],
+  "displayName": {
+    "default": "TeXit-SiyuanFormulaEnhance",
+    "en_US": "TeXit-SiyuanFormulaEnhance",
+    "zh_CN": "TeXit-思源公式输入增强"
+  },
+  "description": {
+    "default": "Adds a WYSIWYG formula editor to the SiYuan LaTeX formula input panel.",
+    "en_US": "Adds a WYSIWYG formula editor to the Siyuan LaTeX formula input panel. Simple and easy to use, naturally integrated into the Siyuan appearance.",
+    "zh_CN": "为思源 LaTeX 公式输入面板添加所见即所得公式编辑器。简洁易用，自然融入思源外观。"
+  },
+  "readme": {
+    "default": "README.md",
+    "en_US": "README.md",
+    "zh_CN": "README_zh_CN.md"
+  },
+  "funding": {
+    "custom": [
+      "https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/donate.jpg"
+    ]
+  },
+  "keywords": [
+    "math",
+    "formula",
+    "latex"
+  ]
+}

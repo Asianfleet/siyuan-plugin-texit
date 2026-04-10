@@ -1,0 +1,390 @@
+@import "@/styles/layout.scss";
+
+/* ==========================================================================
+   字体资源（当前保留注释状态，未在运行时启用）
+   这部分是历史字体定义，主要给公式编辑区或代码风格排版做候选字体。
+   如后续需要启用自定义字体，可直接取消注释并继续沿用这里的资源路径。
+   ========================================================================== */
+
+/* @font-face {
+    font-family: 'JetBrains Mono';
+    src: url('./static/fonts/JetBrainsMono-Regular.woff2') format('woff2'),
+         url('./static/fonts/JetBrainsMono-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('./static/fonts/JetBrainsMono-Bold.woff2') format('woff2'),
+         url('./static/fonts/JetBrainsMono-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: bold;
+    font-display: swap;
+} */
+
+/* ubuntu-mono-latin-400-normal */
+/* @font-face {
+    font-family: 'Ubuntu Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(./static/fonts/ubuntu-mono_5.0.21_latin-400-normal.woff2) format('woff2'),
+         url(./static/fonts/ubuntu-mono_5.1.0_latin-400-normal.woff) format('woff');
+    unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+} */
+
+/* ubuntu-mono-latin-700-normal */
+/* @font-face {
+    font-family: 'Ubuntu Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 700;
+    src: url(./static/fonts/ubuntu-mono_5.1.0_latin-700-normal.woff2) format('woff2'),
+         url(./static/fonts/ubuntu-mono_5.2.5_latin-700-normal.woff) format('woff');
+    unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+} */
+
+/* ==========================================================================
+   全局主题变量
+   作用范围：MathLive 虚拟键盘、按键、工具栏、选区与占位符等内部 UI。
+   这些变量把 MathLive 默认配色映射到 SiYuan 主题变量，保证插件界面与宿主主题一致。
+   ========================================================================== */
+
+:root {
+  /* 虚拟键盘顶部内边距。 */
+  --keyboard-padding-top: 12px;
+  /* 虚拟键盘整体背景，对应底部或悬浮键盘面板的底色。 */
+  --keyboard-background: var(--b3-menu-background);
+  /* 主按键文字颜色，对应键盘按键上的主要字符。 */
+  --keycap-text: var(--b3-theme-on-background);
+  /* 副文字颜色，对应按键角标、次要符号或补充说明。 */
+  --keycap-secondary-text: var(--b3-theme-on-background);
+  /* Shift/状态类按键高亮色，对应大小写或模式切换按钮。 */
+  --keycap-shift-color: var(--b3-theme-primary);
+  /* 输入框占位提示色，对应空公式区域里的提示文本。 */
+  --box-placeholder-color: var(--b3-theme-primary);
+  /* 键盘工具栏普通文字色，对应工具栏标签与图标默认状态。 */
+  --keyboard-toolbar-text: var(--b3-theme-on-background);
+  /* 键盘工具栏激活文字色，对应当前选中工具按钮。 */
+  --keyboard-toolbar-text-active: var(--b3-card-info-color);
+  /* 键盘工具栏背景色，对应键盘顶部工具栏底色。 */
+  --keyboard-toolbar-background: var(--b3-toolbar-background);
+  /* 主按键背景色，对应普通键帽默认底色。 */
+  --keycap-background: var(--b3-list-hover);
+  /* 主按键悬停色，对应鼠标移入普通键帽时的高亮底色。 */
+  --keycap-background-hover: var(--b3-theme-primary-lighter);
+  /* 次级按键背景色，对应功能键或弱化按钮底色。 */
+  --keycap-secondary-background: var(--b3-scroll-color);
+  /* 次级按键悬停色，对应功能键 hover 状态。 */
+  --keycap-secondary-background-hover: var(--b3-theme-primary-light);
+  /* 键帽之间的间距，略微增大以减少拥挤感。 */
+  --keycap-gap: 8px;
+  /* 选区高亮色，对应公式编辑时的文本/结构选中背景。 */
+  --selection-color: var(--b3-theme-primary);
+}
+
+body .ML__keyboard :where(div) {
+  margin-bottom: 6px;
+}
+
+body .ML__keyboard .MLK__rows > .MLK__row div.action svg.svg-glyph,
+body .ML__keyboard .MLK__rows > .MLK__row div.action svg.svg-glyph-lg {
+  margin: 4px 0;
+}
+
+body .ML__keyboard .MLK__rows > .MLK__row div.action.bottom,
+body .ML__keyboard .MLK__rows > .MLK__row div.action.right {
+  justify-content: center;
+  align-items: center;
+}
+
+body .ML__keyboard .MLK__rows > .MLK__row div.action.right {
+  padding-right: 0;
+}
+
+/* 深色主题下单独修正键盘工具栏 hover 色，避免暗色模式下悬停层次不够明显。 */
+@media (prefers-color-scheme: dark) {
+  body .ML__keyboard {
+    --keyboard-toolbar-background-hover: var(--b3-theme-primary-lighter) !important;
+  }
+}
+
+/* ==========================================================================
+   MathLive 宿主容器
+   作用范围：插件插入到公式面板中的外层挂载节点，以及进入/退出显示时的状态切换。
+   ========================================================================== */
+
+/* 公式编辑器最外层容器。
+   控制位置：SiYuan 公式面板内承载 MathLive 的挂载区域。
+   主要作用：让挂载节点独占一行、撑满可用宽度，并允许内部弹层正常溢出显示。 */
+.formula-enhance__mathlive-host {
+  --fe-math-font-size: 18px;
+  --fe-math-padding-block: 8px;
+  --fe-math-padding-inline: 8px;
+  display: block;
+  width: 100%;
+  overflow: visible;
+  /* margin: 8px 0; */
+}
+
+/* 隐藏态宿主容器。
+   控制位置：当宿主节点同时带有 SiYuan 的 `fn__none` 类时，整个公式编辑区不参与布局。 */
+.formula-enhance__mathlive-host.fn__none {
+  display: none;
+}
+
+.formula-enhance__virtual-keyboard-container {
+  width: 100%;
+  overflow: hidden;
+  height: 0;
+  transition: height 160ms ease;
+  background: var(--b3-menu-background);
+  border-radius: var(--b3-border-radius-b);
+}
+
+.formula-enhance__virtual-keyboard-container.fn__none {
+  display: none;
+}
+
+.formula-enhance__virtual-keyboard-container--top {
+  margin-bottom: 0px;
+}
+
+.formula-enhance__virtual-keyboard-container--bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  border-radius: var(--b3-border-radius-b) var(--b3-border-radius-b) 0 0;
+  box-shadow: var(--b3-dialog-shadow);
+}
+
+.formula-enhance__virtual-keyboard-container--bottom-of-editor {
+  margin-top: 0;
+  margin-bottom: 0;
+  border-radius: 0;
+  border-bottom: 1px solid transparent;
+}
+
+.formula-enhance__virtual-keyboard-container--bottom-of-editor:has(.ML__keyboard.is-visible) {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border-bottom-color: var(--b3-border-color);
+}
+
+/* 展开动画态宿主容器。
+   控制位置：公式编辑器刚被插入或显示出来的那一瞬间。
+   主要作用：给编辑区增加短暂展开动画，并在动画期间裁掉超出内容避免跳动。 */
+.formula-enhance__mathlive-host--revealing {
+  animation: formula-enhance-mathlive-reveal 220ms ease-in-out;
+  overflow: hidden;
+}
+
+/* 宿主容器展开动画。
+   控制位置：外层挂载节点的高度变化，从收起到可见。
+   主要作用：通过 `max-height` 制造平滑展开效果。 */
+@keyframes formula-enhance-mathlive-reveal {
+  from {
+    max-height: 0;
+  }
+
+  to {
+    max-height: 64px;
+  }
+}
+
+/* ==========================================================================
+   MathLive 主输入区
+   作用范围：`math-field` 自定义元素，以及宿主里直接挂载的兼容根节点。
+   这里定义的是用户看到的公式输入框本体。
+   ========================================================================== */
+
+/* 公式输入框主体样式。
+   控制位置：公式面板中真正可编辑的 MathLive 输入区域。
+   说明：
+   - `display/width/min-height` 控制输入框的占位尺寸与最小可编辑高度。
+   - `font-size/padding` 控制公式显示大小与输入框内边距。
+   - `border/background/color` 控制输入框边框、底色和前景色。
+   - `user-select/cursor` 保证用户可以像普通输入框一样选中和编辑。
+   - `--ui-menu-*`、`--neutral-200` 等变量用于同步 MathLive 内置菜单和 UI 组件的配色。
+   - `--placeholder-*` 控制空输入时的占位提示风格。
+   - `--selection-color` 与 `--contains-highlight-background-color` 控制选区和命中高亮。 */
+.formula-enhance__mathlive-host math-field,
+.formula-enhance__mathlive-host > * {
+  --contains-highlight-background-color: var(--b3-theme-primary-lightest);
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  font-size: var(--fe-math-font-size);
+  box-sizing: border-box;
+  padding-block: var(--fe-math-padding-block);
+  padding-inline: var(--fe-math-padding-inline);
+  border: solid var(--b3-border-color);
+  border-width: 1px 0;
+  /* border-radius: var(--b3-border-radius-b); */
+  background-color: var(--b3-theme-surface);
+  color: var(--b3-theme-on-background);
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+  --ui-menu-text: var(--b3-theme-on-background);
+  --ui-menu-text-active: var(--b3-theme-on-background);
+  --ui-menu-bg: var(--b3-menu-background);
+  --ui-menu-divider: var(--b3-border-color);
+  --ui-menu-bg-active-muted: var(--b3-list-hover);
+  --ui-menu-bg-active: var(--b3-list-hover);
+  --ui-menu-shadow: var(--b3-dialog-shadow);
+  --neutral-200: var(--b3-list-hover);
+  --placeholder-color: var(--b3-theme-primary-lightest);
+  --placeholder-opacity: 0.3;
+  --selection-color: var(--b3-theme-on-primary);
+  --contains-highlight-background-color: var(--b3-theme-primary-lightest);
+}
+
+.formula-enhance__mathlive-host[data-fe-textarea-mode="editor-only"] math-field,
+.formula-enhance__mathlive-host[data-fe-textarea-mode="editor-only"] > * {
+  border-bottom-left-radius: var(--b3-border-radius-b);
+  border-bottom-right-radius: var(--b3-border-radius-b);
+}
+
+/* 公式输入框聚焦态。
+   控制位置：用户点击或键盘聚焦到公式编辑区时的边框表现。
+   主要作用：去掉 MathLive 默认 focus 外观，改用与面板一致的无发光样式。 */
+.formula-enhance__mathlive-host math-field:focus,
+.formula-enhance__mathlive-host math-field:focus-within,
+.formula-enhance__mathlive-host > *:focus,
+.formula-enhance__mathlive-host > *:focus-within {
+  outline: none;
+  box-shadow: none;
+  border-color: var(--b3-border-color);
+}
+
+/* ==========================================================================
+   输入框右侧内置控件
+   作用范围：MathLive 输入框内部的虚拟键盘切换按钮和菜单切换按钮。
+   这些按钮通过 `::part(...)` 暴露，分别覆盖桌面和移动宿主态。
+   ========================================================================== */
+
+/* 虚拟键盘切换按钮。
+   控制位置：公式输入框右侧或工具区域内的“打开键盘”按钮。
+   主要作用：保持按钮可见，并统一为主题主色。 */
+.formula-enhance__mathlive-host--desktop math-field::part(virtual-keyboard-toggle),
+.formula-enhance__mathlive-host--desktop > *::part(virtual-keyboard-toggle),
+.formula-enhance__mathlive-host--mobile math-field::part(virtual-keyboard-toggle),
+.formula-enhance__mathlive-host--mobile > *::part(virtual-keyboard-toggle) {
+  display: inline-flex;
+  color: var(--b3-theme-primary);
+}
+
+.formula-enhance__mathlive-host[data-fe-vk-toggle="hide"] math-field::part(virtual-keyboard-toggle),
+.formula-enhance__mathlive-host[data-fe-vk-toggle="hide"] > *::part(virtual-keyboard-toggle),
+.formula-enhance__mathlive-host[data-fe-menu-toggle="hide"] math-field::part(menu-toggle),
+.formula-enhance__mathlive-host[data-fe-menu-toggle="hide"] > *::part(menu-toggle) {
+  display: none;
+}
+
+/* 菜单切换按钮。
+   控制位置：公式输入框内的 MathLive 菜单入口按钮。
+   主要作用：让菜单入口默认使用主题主色，与虚拟键盘入口保持一致。 */
+.formula-enhance__mathlive-host--desktop math-field::part(menu-toggle),
+.formula-enhance__mathlive-host--desktop > *::part(menu-toggle),
+.formula-enhance__mathlive-host--mobile math-field::part(menu-toggle),
+.formula-enhance__mathlive-host--mobile > *::part(menu-toggle) {
+  color: var(--b3-theme-primary);
+}
+
+/* 输入框内置按钮 hover 态。
+   控制位置：虚拟键盘按钮和菜单按钮的鼠标悬停状态。
+   主要作用：悬停时切到信息色，给用户清晰的可交互反馈。 */
+.formula-enhance__mathlive-host--desktop math-field::part(virtual-keyboard-toggle):hover,
+.formula-enhance__mathlive-host--desktop > *::part(virtual-keyboard-toggle):hover,
+.formula-enhance__mathlive-host--mobile math-field::part(virtual-keyboard-toggle):hover,
+.formula-enhance__mathlive-host--mobile > *::part(virtual-keyboard-toggle):hover,
+.formula-enhance__mathlive-host--desktop math-field::part(menu-toggle):hover,
+.formula-enhance__mathlive-host--desktop > *::part(menu-toggle):hover,
+.formula-enhance__mathlive-host--mobile math-field::part(menu-toggle):hover,
+.formula-enhance__mathlive-host--mobile > *::part(menu-toggle):hover {
+  color: var(--b3-card-info-color);
+}
+
+/* MathLive 内置下拉菜单容器。
+   控制位置：公式输入框唤起的内置菜单外层浮层。
+   主要作用：取消默认边框，改成更贴近 SiYuan 弹层风格的描边、圆角和阴影。 */
+.formula-enhance__mathlive-host math-field::part(ui-menu-container),
+.formula-enhance__mathlive-host > *::part(ui-menu-container) {
+  border: none;
+  outline: 1px solid var(--b3-theme-surface-lighter);
+  box-shadow: var(--b3-dialog-shadow);
+  border-radius: var(--b3-border-radius-b);
+}
+
+.formula-enhance__textarea--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   自动补全建议弹层
+   作用范围：MathLive 在输入命令时弹出的 suggestion popover。
+   这里覆盖的是浮层本体、候选项、当前选中项和辅助按键提示。
+   ========================================================================== */
+
+/* 建议弹层根节点。
+   控制位置：输入 LaTeX 命令时出现在输入框附近的候选列表浮层。
+   主要作用：统一文本颜色、背景、边框轮廓、阴影和圆角，并裁掉内部溢出内容。 */
+#mathlive-suggestion-popover {
+  color: var(--b3-theme-on-background);
+  background-color: var(--b3-menu-background) !important;
+  outline: 1px solid var(--b3-theme-surface-lighter) !important;
+  box-shadow: var(--b3-dialog-shadow) !important;
+  border-radius: var(--b3-border-radius-b) !important;
+  overflow: hidden !important;
+}
+
+/* 建议弹层内部文本。
+   控制位置：每个候选项中的命令名、说明文字和 LaTeX 预览文本。
+   主要作用：确保弹层内部所有主要文本都跟随宿主主题前景色。 */
+#mathlive-suggestion-popover .ML__suggestion,
+#mathlive-suggestion-popover .ML__popover__command,
+#mathlive-suggestion-popover .ML__popover__latex {
+  color: var(--b3-theme-on-background);
+}
+
+/* 建议弹层箭头隐藏。
+   控制位置：popover 默认附带的三角箭头装饰。
+   主要作用：移除默认箭头，避免与 SiYuan 扁平弹层风格冲突。 */
+#mathlive-suggestion-popover::before,
+#mathlive-suggestion-popover::after {
+  display: none !important;
+}
+
+/* 建议项交互态背景。
+   控制位置：鼠标悬停、按下或键盘导航到的候选项行。
+   主要作用：用统一 hover 背景突出当前交互项。 */
+#mathlive-suggestion-popover li:hover,
+#mathlive-suggestion-popover li.is-pressed,
+#mathlive-suggestion-popover li.is-active {
+  background-color: var(--b3-list-hover) !important;
+}
+
+/* 当前命中的候选项。
+   控制位置：建议列表中当前真正高亮选中的那一项。
+   主要作用：比普通 hover 更明显地标识“当前将要插入”的候选。 */
+#mathlive-suggestion-popover .ML__popover__current {
+  background-color: var(--b3-theme-primary-light) !important;
+  color: var(--b3-theme-on-primary);
+}
+
+/* 快捷键提示隐藏。
+   控制位置：建议项右侧的 keybinding 文本区域。
+   主要作用：隐藏对当前插件场景帮助较小的快捷键说明，减少视觉噪音。 */
+#mathlive-suggestion-popover .ML__popover__keybinding {
+  display: none !important;
+}
