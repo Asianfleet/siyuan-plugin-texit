@@ -3,10 +3,10 @@
 <!-- markdownlint-disable MD036 -->
 
 <p align="center">
-    <img src="asset/formula-enhance.png" alt="公式输入增强" width=100%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/formula-enhance.png" alt="公式输入增强" width=100%/>
 </p>
 
-[English README](README.md) | [更新记录](CHANGELOG.md)
+[English README](https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/README.md) | [更新记录](https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/CHANGELOG.md)
 
 # TeXit-便捷 LaTeX 公式编辑
 
@@ -26,19 +26,19 @@ TeXit 是一个提升思源笔记的 LaTeX 公式编辑体验的插件：在思�
 在上方 MathLive 可视化编辑区直接输入，下方原始 LaTeX 文本会实时更新。修改下方的 LaTeX，顶部可视化编辑区也会同步变化。输入 LaTeX 命令自动显示建议列表，切换时列表不闪动。
 
 <p align="center">
-    <img src="asset/example1.gif" style="border: 1px solid; border-radius: 8px" alt="功能展示" width=90%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/example1.gif" style="border: 1px solid; border-radius: 8px" alt="功能展示" width=90%/>
 </p>
 
 在思源中输入公式块，焦点自动移动到公式编辑器内部。全程手不离开键盘。
 
 <p align="center">
-    <img src="asset/example2.gif" style="border: 1px solid; border-radius: 8px" alt="功能展示" width=90%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/example2.gif" style="border: 1px solid; border-radius: 8px" alt="功能展示" width=90%/>
 </p>
 
 通过菜单修改字体样式、公式颜色和背景色。
 
 <p align="center">
-    <img src="asset/example3.gif" style="border: 1px solid; border-radius: 8px" alt="功能展示" width=90%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/example3.gif" style="border: 1px solid; border-radius: 8px" alt="功能展示" width=90%/>
 </p>
 
 更多功能详见 [Mathlive 文档](https://mathlive.io/mathfield/).
@@ -59,6 +59,6 @@ TeXit 是一个提升思源笔记的 LaTeX 公式编辑体验的插件：在思�
 ## 赞赏作者
 
 <p align="center">
-    <img src="asset/donate.jpg" alt="赞赏作者" width=50%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/donate.jpg" alt="赞赏作者" width=50%/>
 </p>
 <p align="center">如果你喜欢这个插件，可以赞赏一下作者嗷~ :D</p>

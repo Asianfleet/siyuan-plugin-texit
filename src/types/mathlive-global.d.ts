@@ -18,6 +18,7 @@ type MathfieldElementStyleOptions = {
 };
 
 interface MathfieldElementInstance extends HTMLElement {
+  mode?: "math" | "text" | "latex";
   value: string;
   mathVirtualKeyboardPolicy?: "auto" | "manual" | "sandboxed";
   executeCommand(selector: string | unknown[] | readonly unknown[], ...args: unknown[]): boolean;

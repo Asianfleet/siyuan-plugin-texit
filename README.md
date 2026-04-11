@@ -3,10 +3,10 @@
 <!-- markdownlint-disable MD036 -->
 
 <p align="center">
-    <img src="asset/formula-enhance.png" alt="FormulaEnhance" width=100%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/formula-enhance.png" alt="FormulaEnhance" width=100%/>
 </p>
 
-[中文 README](README_zh_CN.md) | [Changelog](CHANGELOG.md)
+[中文 README](https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/README_zh_CN.md) | [Changelog](https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/CHANGELOG.md)
 
 # TeXit - convenient LaTeX formula editing
 
@@ -26,19 +26,19 @@ TeXit is a plugin that improves the formula editing experience in SiYuan: it int
 Type directly in the MathLive visual editor at the top. The raw LaTeX text below updates in real time. If you edit the LaTeX below, the visual editor above stays in sync as well. When you type LaTeX commands, the suggestion list appears automatically and does not flicker while switching.
 
 <p align="center">
-    <img src="asset/example1.gif" style="border: 1px solid; border-radius: 8px" alt="Feature demo" width=90%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/example1.gif" style="border: 1px solid; border-radius: 8px" alt="Feature demo" width=90%/>
 </p>
 
 When you insert a formula block in SiYuan, focus automatically moves into the formula editor so you can keep your hands on the keyboard throughout the workflow.
 
 <p align="center">
-    <img src="asset/example2.gif" style="border: 1px solid; border-radius: 8px" alt="Feature demo" width=90%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/example2.gif" style="border: 1px solid; border-radius: 8px" alt="Feature demo" width=90%/>
 </p>
 
 Use the menu to change font style, formula color, and background color.
 
 <p align="center">
-    <img src="asset/example3.gif" style="border: 1px solid; border-radius: 8px" alt="Feature demo" width=90%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/example3.gif" style="border: 1px solid; border-radius: 8px" alt="Feature demo" width=90%/>
 </p>
 
 For more features, see the [MathLive documentation](https://mathlive.io/mathfield/).
@@ -59,6 +59,6 @@ When the SiYuan interface language is set to `zh_CN`, the plugin automatically:
 ## Appreciate the Author
 
 <p align="center">
-    <img src="asset/donate.jpg" alt="Support the author" width=50%/>
+    <img src="https://github.com/Asianfleet/siyuan-plugin-texit/blob/main/asset/donate.jpg" alt="Support the author" width=50%/>
 </p>
 <p align="center">If you like this plugin, you can support the author with a donation. :D</p>

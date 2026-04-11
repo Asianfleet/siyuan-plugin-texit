@@ -13,7 +13,10 @@ import {
 import type { RevealTimer } from "./formula-panel-dom";
 import type { FormulaPanelSettings } from "../formula-panel-settings";
 import type { InternalMathfieldInstance } from "./mathlive-matrix-environment";
-import type { FormulaPanelSyncContext } from "./formula-panel-sync";
+import type {
+  DeferredMathfieldInputSync,
+  FormulaPanelSyncContext,
+} from "./formula-panel-sync";
 import {
   createMathliveVirtualKeyboardController,
   destroyMathliveVirtualKeyboardController,
@@ -43,6 +46,7 @@ export class FormulaPanelSession {
   initialized = false;
   isSyncing = false;
   lastTextareaValue: string | null = null;
+  deferredMathfieldInputSync: DeferredMathfieldInputSync | null = null;
   hasAnimatedIn = false;
   revealTimer: RevealTimer | null = null;
   cleanupSuggestionPopoverStabilizer: (() => void) | null = null;
@@ -57,7 +61,7 @@ export class FormulaPanelSession {
   }
 
   /**
-   * 绑定或切换 textarea，并根据是否为新输入框重置状态后重新监听输入。
+   * 绑定或切换 textarea，并根据是否为新输入框重置同步状态后重新监听输入。
    */
   attachTextarea(textarea: HTMLTextAreaElement): void {
     const isNextTextarea = this.textarea !== textarea;
@@ -71,7 +75,7 @@ export class FormulaPanelSession {
       this.initialized = false;
       this.isSyncing = false;
       this.lastTextareaValue = null;
-      this.hasAnimatedIn = false;
+      this.deferredMathfieldInputSync = null;
       this.textarea.addEventListener("input", this.onTextareaInput);
       // 重新绑定输入监听以保持会话同步。
     } else if (!this.initialized) {
@@ -128,6 +132,10 @@ export class FormulaPanelSession {
       getLastTextareaValue: () => this.lastTextareaValue,
       setLastTextareaValue: (value) => {
         this.lastTextareaValue = value;
+      },
+      getDeferredMathfieldInputSync: () => this.deferredMathfieldInputSync,
+      setDeferredMathfieldInputSync: (value) => {
+        this.deferredMathfieldInputSync = value;
       },
       syncTextareaHeight: () => {
         this.syncTextareaHeight();
@@ -206,6 +214,7 @@ export class FormulaPanelSession {
     this.initialized = false;
     this.isSyncing = false;
     this.lastTextareaValue = null;
+    this.deferredMathfieldInputSync = null;
     this.hasAnimatedIn = false;
   }
 

@@ -5,6 +5,19 @@ import {
   applyMatrixEnvironmentFallback,
   type InternalMathfieldInstance,
 } from "./mathlive-matrix-environment";
+import {
+  logFormulaPanelDebug,
+  previewLatex,
+} from "./formula-panel-debug";
+import {
+  restoreVerbatimFontStyleLatex,
+} from "./mathlive-style-preservation";
+import type { MathfieldCommandMutation } from "./mathlive-menu-patch";
+
+export type DeferredMathfieldInputSync = {
+  mathfieldValue: string;
+  textareaValue: string;
+};
 
 /**
  * 提供 MathLive 与 textarea 的双向同步状态和工具函数。
@@ -16,6 +29,10 @@ export type FormulaPanelSyncContext = {
   setIsSyncing: (value: boolean) => void;
   getLastTextareaValue: () => string | null;
   setLastTextareaValue: (value: string | null) => void;
+  getDeferredMathfieldInputSync: () => DeferredMathfieldInputSync | null;
+  setDeferredMathfieldInputSync: (
+    value: DeferredMathfieldInputSync | null,
+  ) => void;
   syncTextareaHeight: () => void;
 };
 
@@ -24,21 +41,35 @@ export type FormulaPanelSyncContext = {
  */
 export function syncMathfieldToTextarea(
   context: FormulaPanelSyncContext,
+  nextValue: string | null = context.mathfield?.value ?? null,
 ): void {
   if (
     !context.textarea ||
     !context.mathfield ||
+    nextValue === null ||
     context.getIsSyncing() ||
-    context.textarea.value === context.mathfield.value
+    context.textarea.value === nextValue
   ) {
     return;
   }
 
-  // 先标记正在同步，防止双向互相触发。
+  logFormulaPanelDebug("sync-mathfield-to-textarea", {
+    previousTextareaValue: previewLatex(context.textarea.value),
+    nextTextareaValue: previewLatex(nextValue),
+  });
+
   context.setIsSyncing(true);
   try {
-    context.textarea.value = context.mathfield.value;
+    context.textarea.value = nextValue;
     context.setLastTextareaValue(context.textarea.value);
+    if (context.mathfield.value !== nextValue) {
+      context.setDeferredMathfieldInputSync({
+        mathfieldValue: context.mathfield.value,
+        textareaValue: nextValue,
+      });
+    } else {
+      context.setDeferredMathfieldInputSync(null);
+    }
     context.syncTextareaHeight();
     context.textarea.dispatchEvent(new Event("input", { bubbles: true }));
   } finally {
@@ -69,17 +100,73 @@ export function syncTextareaToMathfield(
  */
 export function syncCommandDrivenMathfieldMutation(
   context: FormulaPanelSyncContext,
-  previousValue: string,
+  mutation: string | MathfieldCommandMutation,
 ): void {
+  const previousValue =
+    typeof mutation === "string" ? mutation : mutation.previousValue;
+  const rawMathfieldValue = context.mathfield?.value ?? null;
+  const nextValue =
+    typeof mutation === "string"
+      ? rawMathfieldValue
+      : restoreVerbatimFontStyleLatex({
+        mathfield: context.mathfield as Parameters<
+          typeof restoreVerbatimFontStyleLatex
+        >[0]["mathfield"],
+        snapshot: mutation.fontStyleSnapshot,
+      }) ?? rawMathfieldValue;
+
+  logFormulaPanelDebug("sync-command-driven-mutation", {
+    previousValue: previewLatex(previousValue),
+    rawMathfieldValue: previewLatex(rawMathfieldValue),
+    nextValue: previewLatex(nextValue),
+    hasFontStyleSnapshot:
+      typeof mutation === "string"
+        ? false
+        : Boolean(mutation.fontStyleSnapshot),
+    fontStyleSnapshotEntries:
+      typeof mutation === "string"
+        ? 0
+        : mutation.fontStyleSnapshot?.entries.length ?? 0,
+  });
+
+  const textareaAlreadyMatches = context.textarea?.value === nextValue;
   if (
     !context.mathfield ||
-    context.mathfield.value === previousValue ||
-    context.textarea?.value === context.mathfield.value
+    nextValue === null ||
+    context.mathfield.value === previousValue
   ) {
+    logFormulaPanelDebug("skip-command-driven-mutation-sync", {
+      hasMathfield: Boolean(context.mathfield),
+      nextValueIsNull: nextValue === null,
+      mathfieldEqualsPrevious:
+        context.mathfield?.value === previousValue,
+      textareaAlreadyMatches,
+      armedDeferredSync: false,
+    });
     return;
   }
 
-  syncMathfieldToTextarea(context);
+  if (textareaAlreadyMatches) {
+    if (context.mathfield.value !== nextValue) {
+      context.setDeferredMathfieldInputSync({
+        mathfieldValue: context.mathfield.value,
+        textareaValue: nextValue,
+      });
+    } else {
+      context.setDeferredMathfieldInputSync(null);
+    }
+
+    logFormulaPanelDebug("skip-command-driven-mutation-sync", {
+      hasMathfield: true,
+      nextValueIsNull: false,
+      mathfieldEqualsPrevious: false,
+      textareaAlreadyMatches: true,
+      armedDeferredSync: context.mathfield.value !== nextValue,
+    });
+    return;
+  }
+
+  syncMathfieldToTextarea(context, nextValue);
 }
 
 /**

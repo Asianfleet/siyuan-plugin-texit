@@ -1,6 +1,12 @@
 /**
  * 围绕 MathLive 菜单插入清除颜色与矩阵记录所需的补丁逻辑。
  */
+import {
+  logFormulaPanelDebug,
+  previewLatex,
+} from "./formula-panel-debug";
+import type { VerbatimFontStyleSnapshot } from "./mathlive-style-preservation";
+
 const CLEAR_COLOR_STYLE_MENU_ITEM_ID = "menu.clear-color-style";
 const BACKGROUND_COLOR_MENU_ITEM_ID = "background-color";
 
@@ -8,12 +14,32 @@ const BACKGROUND_COLOR_MENU_ITEM_ID = "background-color";
 type MathfieldCommandMethod = (...args: unknown[]) => unknown;
 
 /** 需要在命令执行前后同步状态的 Mathfield 实例。 */
+type CommandSyncTarget = {
+  applyStyle: MathfieldCommandMethod;
+  executeCommand: MathfieldCommandMethod;
+  __formulaEnhanceCommandSyncInstalled__?: boolean;
+};
+
 type CommandSyncMathfield = {
   value: string;
   executeCommand: MathfieldCommandMethod;
   applyStyle: MathfieldCommandMethod;
+  _mathfield?: CommandSyncTarget | null;
   __formulaEnhanceCommandSyncInstalled__?: boolean;
 };
+
+export type MathfieldCommandMutation = {
+  previousValue: string;
+  fontStyleSnapshot?: VerbatimFontStyleSnapshot | null;
+};
+
+type CaptureApplyStyleMutationMetadata = (
+  ...args: unknown[]
+) => Pick<MathfieldCommandMutation, "fontStyleSnapshot"> | null | undefined;
+
+type CaptureExecuteCommandMutationMetadata = (
+  ...args: unknown[]
+) => Pick<MathfieldCommandMutation, "fontStyleSnapshot"> | null | undefined;
 
 /** MathLive 菜单项的基本定义，可包含子菜单。 */
 type MathfieldMenuItem = {
@@ -71,31 +97,71 @@ export function clearMathfieldColorStyle(
 /** 拦截 Mathfield 命令与样式调用以便在数据变更后同步外部状态。 */
 export function installMathfieldCommandSync(
   mathfield: CommandSyncMathfield | null,
-  onMutation: (previousValue: string) => void,
+  onMutation: (mutation: MathfieldCommandMutation) => void,
+  captureApplyStyleMutationMetadata?: CaptureApplyStyleMutationMetadata,
+  captureExecuteCommandMutationMetadata?: CaptureExecuteCommandMutationMetadata,
 ): void {
-  if (!mathfield || mathfield.__formulaEnhanceCommandSyncInstalled__) {
+  if (!mathfield) {
     return;
   }
 
-  // 劫持命令接口以便在命令执行后通知调用方当前值。
-  const originalExecuteCommand = mathfield.executeCommand.bind(mathfield);
-  mathfield.executeCommand = ((...args: Parameters<typeof originalExecuteCommand>) => {
+  const syncTarget = mathfield._mathfield ?? mathfield;
+  if (syncTarget.__formulaEnhanceCommandSyncInstalled__) {
+    logFormulaPanelDebug("command-sync-already-installed", {
+      usesInternalTarget: syncTarget !== mathfield,
+    });
+    return;
+  }
+
+  logFormulaPanelDebug("install-command-sync", {
+    usesInternalTarget: syncTarget !== mathfield,
+    hasInternalTarget: Boolean(mathfield._mathfield),
+  });
+
+  const originalExecuteCommand = syncTarget.executeCommand.bind(syncTarget);
+  syncTarget.executeCommand = ((...args: Parameters<typeof originalExecuteCommand>) => {
     const previousValue = mathfield.value;
+    const mutationMetadata = captureExecuteCommandMutationMetadata?.(...args) ?? {};
     const result = originalExecuteCommand(...args);
-    onMutation(previousValue);
+    logFormulaPanelDebug("execute-command-intercepted", {
+      usesInternalTarget: syncTarget !== mathfield,
+      args,
+      previousValue: previewLatex(previousValue),
+      nextValue: previewLatex(mathfield.value),
+      hasFontStyleSnapshot: Boolean(mutationMetadata.fontStyleSnapshot),
+      fontStyleSnapshotEntries:
+        mutationMetadata.fontStyleSnapshot?.entries.length ?? 0,
+    });
+    onMutation({
+      previousValue,
+      ...mutationMetadata,
+    });
     return result;
-  }) as typeof mathfield.executeCommand;
+  }) as typeof syncTarget.executeCommand;
 
-  // applyStyle 也应触发同步流程，因此同样包装。
-  const originalApplyStyle = mathfield.applyStyle.bind(mathfield);
-  mathfield.applyStyle = ((...args: Parameters<typeof originalApplyStyle>) => {
+  const originalApplyStyle = syncTarget.applyStyle.bind(syncTarget);
+  syncTarget.applyStyle = ((...args: Parameters<typeof originalApplyStyle>) => {
     const previousValue = mathfield.value;
+    const mutationMetadata = captureApplyStyleMutationMetadata?.(...args) ?? {};
     const result = originalApplyStyle(...args);
-    onMutation(previousValue);
+    logFormulaPanelDebug("apply-style-intercepted", {
+      usesInternalTarget: syncTarget !== mathfield,
+      style: args[0],
+      options: args[1],
+      previousValue: previewLatex(previousValue),
+      nextValue: previewLatex(mathfield.value),
+      hasFontStyleSnapshot: Boolean(mutationMetadata.fontStyleSnapshot),
+      fontStyleSnapshotEntries:
+        mutationMetadata.fontStyleSnapshot?.entries.length ?? 0,
+    });
+    onMutation({
+      previousValue,
+      ...mutationMetadata,
+    });
     return result;
-  }) as typeof mathfield.applyStyle;
+  }) as typeof syncTarget.applyStyle;
 
-  mathfield.__formulaEnhanceCommandSyncInstalled__ = true;
+  syncTarget.__formulaEnhanceCommandSyncInstalled__ = true;
 }
 
 /** 递归包装菜单项，允许矩阵项记录上下文并避免重复包装。 */

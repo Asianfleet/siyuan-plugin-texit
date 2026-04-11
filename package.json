@@ -1,6 +1,6 @@
 {
   "name": "siyuan-plugin-texit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Adds a WYSIWYG formula editor to the Siyuan LaTeX formula input panel. Simple and easy to use, naturally integrated into the Siyuan appearance.",
   "repository": "https://github.com/Asianfleet/siyuan-plugin-texit",

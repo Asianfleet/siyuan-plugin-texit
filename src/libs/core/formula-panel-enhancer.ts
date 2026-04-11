@@ -34,6 +34,17 @@ import {
   installMathfieldCommandSync,
 } from "./formula-panel-tools/mathlive-menu-patch";
 import {
+  logFormulaPanelDebug,
+  previewLatex,
+} from "./formula-panel-tools/formula-panel-debug";
+import {
+  captureVerbatimFontStyleSnapshot,
+  captureVerbatimLatexInputSnapshot,
+  isVariantStyleApplyStyleArgs,
+  restoreVerbatimLatexInputLatex,
+  restoreVerbatimFontStyleLatex,
+} from "./formula-panel-tools/mathlive-style-preservation";
+import {
   configureVirtualKeyboardPlacement,
   hideCustomVirtualKeyboardIfNeeded,
 } from "./formula-panel-tools/mathlive-virtual-keyboard";
@@ -92,10 +103,121 @@ export class FormulaPanelEnhancer {
   private readonly loadMathLive: LoadMathLive;
   private readonly session: FormulaPanelSession;
   private settings: FormulaPanelSettings;
+  private pendingInputFontStyleSnapshot: ReturnType<
+    typeof captureVerbatimFontStyleSnapshot
+  > = null;
+  private pendingInputLatexSnapshot: ReturnType<
+    typeof captureVerbatimLatexInputSnapshot
+  > = null;
 
   /** 监听 Mathfield 输入事件，将值同步回 textarea。 */
   private readonly onMathfieldInput = () => {
-    syncMathfieldToTextarea(this.session.getSyncContext());
+    const context = this.session.getSyncContext();
+    const pendingInputFontStyleSnapshot = this.pendingInputFontStyleSnapshot;
+    const pendingInputLatexSnapshot = this.pendingInputLatexSnapshot;
+    this.pendingInputFontStyleSnapshot = null;
+    this.pendingInputLatexSnapshot = null;
+    const deferredSync = context.getDeferredMathfieldInputSync();
+    if (deferredSync) {
+      const matchesDeferredSync =
+        context.mathfield?.value === deferredSync.mathfieldValue &&
+        context.textarea?.value === deferredSync.textareaValue;
+      if (matchesDeferredSync) {
+        logFormulaPanelDebug("skip-deferred-mathfield-input-sync", {
+          mathfieldValue: previewLatex(context.mathfield?.value ?? null),
+          textareaValue: previewLatex(context.textarea?.value ?? null),
+        });
+        return;
+      }
+
+      context.setDeferredMathfieldInputSync(null);
+      logFormulaPanelDebug("clear-stale-deferred-mathfield-input-sync", {
+        deferredMathfieldValue: previewLatex(deferredSync.mathfieldValue),
+        deferredTextareaValue: previewLatex(deferredSync.textareaValue),
+        mathfieldValue: previewLatex(context.mathfield?.value ?? null),
+        textareaValue: previewLatex(context.textarea?.value ?? null),
+      });
+    }
+
+    if (pendingInputFontStyleSnapshot && this.session.mathfield) {
+      const restoredValue = restoreVerbatimFontStyleLatex({
+        mathfield: this.session.mathfield as Parameters<
+          typeof restoreVerbatimFontStyleLatex
+        >[0]["mathfield"],
+        snapshot: pendingInputFontStyleSnapshot,
+      });
+      logFormulaPanelDebug("restore-input-font-style-snapshot", {
+        hasSnapshot: true,
+        snapshotEntries: pendingInputFontStyleSnapshot.entries.length,
+        restoredValue: previewLatex(restoredValue),
+      });
+      if (restoredValue !== null) {
+        syncMathfieldToTextarea(context, restoredValue);
+        return;
+      }
+    }
+
+    if (pendingInputLatexSnapshot && this.session.mathfield) {
+      const restoredValue = restoreVerbatimLatexInputLatex({
+        nextLatex: this.session.mathfield.value,
+        snapshot: pendingInputLatexSnapshot,
+      });
+      logFormulaPanelDebug("restore-input-latex-snapshot", {
+        hasSnapshot: true,
+        snapshotEntries: pendingInputLatexSnapshot.entries.length,
+        restoredValue: previewLatex(restoredValue),
+      });
+      if (restoredValue !== null) {
+        syncMathfieldToTextarea(context, restoredValue);
+        return;
+      }
+    }
+
+    syncMathfieldToTextarea(context);
+  };
+
+  /** 在输入前抓取当前 textarea 的原始字体包装，用于输入后恢复未触及部分。 */
+  private readonly onMathfieldBeforeInput = () => {
+    if (
+      !this.session.mathfield ||
+      !this.session.textarea ||
+      this.session.isSyncing
+    ) {
+      logFormulaPanelDebug("skip-input-font-style-snapshot-capture", {
+        hasMathfield: Boolean(this.session.mathfield),
+        hasTextarea: Boolean(this.session.textarea),
+        isSyncing: this.session.isSyncing,
+        mode: this.session.mathfield?.mode ?? null,
+      });
+      this.pendingInputFontStyleSnapshot = null;
+      this.pendingInputLatexSnapshot = null;
+      return;
+    }
+
+    this.pendingInputFontStyleSnapshot = captureVerbatimFontStyleSnapshot({
+      mathfield: this.session.mathfield as Parameters<
+        typeof captureVerbatimFontStyleSnapshot
+      >[0]["mathfield"],
+      sourceLatex: this.session.textarea.value,
+    });
+    logFormulaPanelDebug("capture-input-font-style-snapshot-request", {
+      textareaValue: previewLatex(this.session.textarea.value),
+      hasFontStyleSnapshot: Boolean(this.pendingInputFontStyleSnapshot),
+      fontStyleSnapshotEntries:
+        this.pendingInputFontStyleSnapshot?.entries.length ?? 0,
+    });
+    this.pendingInputLatexSnapshot = captureVerbatimLatexInputSnapshot({
+      canonicalLatex: this.session.mathfield.value,
+      sourceLatex: this.session.textarea.value,
+    });
+    logFormulaPanelDebug("capture-input-latex-snapshot-request", {
+      textareaValue: previewLatex(this.session.textarea.value),
+      mathfieldValue: previewLatex(this.session.mathfield.value),
+      mode: this.session.mathfield.mode ?? null,
+      hasLatexSnapshot: Boolean(this.pendingInputLatexSnapshot),
+      latexSnapshotEntries:
+        this.pendingInputLatexSnapshot?.entries.length ?? 0,
+    });
   };
 
   /** 捕获 MathLive 菜单事件，并根据环境同步矩阵内容。 */
@@ -209,6 +331,7 @@ export class FormulaPanelEnhancer {
     if (!this.session.mathfield) {
       configureMathLiveLocale();
       const mathfield = new MathfieldElement() as FormulaPanelMathfieldInstance;
+      mathfield.addEventListener("beforeinput", this.onMathfieldBeforeInput);
       mathfield.addEventListener("input", this.onMathfieldInput);
       mathfield.addEventListener("menu-select", this.onMathfieldMenuSelect);
       mathfield.addEventListener("pointerdown", this.onMathfieldPointerDown);
@@ -224,16 +347,83 @@ export class FormulaPanelEnhancer {
       }
     }
 
-    installMathfieldCommandSync(this.session.mathfield, (previousValue) => {
-      syncCommandDrivenMathfieldMutation(
-        this.session.getSyncContext(),
-        previousValue,
-      );
-    });
-
     if (this.session.mathfield?.parentElement !== host) {
       host.appendChild(this.session.mathfield);
     }
+
+    installMathfieldCommandSync(this.session.mathfield, (mutation) => {
+      logFormulaPanelDebug("received-command-mutation", {
+        previousValue: previewLatex(mutation.previousValue),
+        hasFontStyleSnapshot: Boolean(mutation.fontStyleSnapshot),
+        fontStyleSnapshotEntries: mutation.fontStyleSnapshot?.entries.length ?? 0,
+      });
+      syncCommandDrivenMathfieldMutation(
+        this.session.getSyncContext(),
+        mutation,
+      );
+    }, (...args) => {
+      if (
+        !this.session.mathfield ||
+        !this.session.textarea ||
+        !isVariantStyleApplyStyleArgs(args)
+      ) {
+        logFormulaPanelDebug("skip-font-style-snapshot-capture", {
+          hasMathfield: Boolean(this.session.mathfield),
+          hasTextarea: Boolean(this.session.textarea),
+          isVariantStyleApplyStyle: isVariantStyleApplyStyleArgs(args),
+          style: args[0],
+          options: args[1],
+        });
+        return null;
+      }
+
+      const fontStyleSnapshot = captureVerbatimFontStyleSnapshot({
+        mathfield: this.session.mathfield as Parameters<
+          typeof captureVerbatimFontStyleSnapshot
+        >[0]["mathfield"],
+        sourceLatex: this.session.textarea.value,
+      });
+      logFormulaPanelDebug("capture-font-style-snapshot-request", {
+        textareaValue: previewLatex(this.session.textarea.value),
+        style: args[0],
+        options: args[1],
+        hasFontStyleSnapshot: Boolean(fontStyleSnapshot),
+        fontStyleSnapshotEntries: fontStyleSnapshot?.entries.length ?? 0,
+      });
+
+      return {
+        fontStyleSnapshot,
+      };
+    }, (...args) => {
+      if (
+        !this.session.mathfield ||
+        !this.session.textarea
+      ) {
+        logFormulaPanelDebug("skip-command-font-style-snapshot-capture", {
+          hasMathfield: Boolean(this.session.mathfield),
+          hasTextarea: Boolean(this.session.textarea),
+          args,
+        });
+        return null;
+      }
+
+      const fontStyleSnapshot = captureVerbatimFontStyleSnapshot({
+        mathfield: this.session.mathfield as Parameters<
+          typeof captureVerbatimFontStyleSnapshot
+        >[0]["mathfield"],
+        sourceLatex: this.session.textarea.value,
+      });
+      logFormulaPanelDebug("capture-command-font-style-snapshot-request", {
+        textareaValue: previewLatex(this.session.textarea.value),
+        args,
+        hasFontStyleSnapshot: Boolean(fontStyleSnapshot),
+        fontStyleSnapshotEntries: fontStyleSnapshot?.entries.length ?? 0,
+      });
+
+      return {
+        fontStyleSnapshot,
+      };
+    });
 
     this.installMathfieldMenuPatch();
   }
@@ -271,6 +461,8 @@ export class FormulaPanelEnhancer {
       return;
     }
     this.session.attachTextarea(textarea);
+    this.pendingInputFontStyleSnapshot = null;
+    this.pendingInputLatexSnapshot = null;
     this.session.applyTextareaSettings(this.settings);
 
     // 确保 MathLive 脚本完成加载，后续才能创建 Mathfield。
@@ -316,12 +508,15 @@ export class FormulaPanelEnhancer {
   /** 解绑事件并销毁会话，防止资源泄漏。 */
   destroy(): void {
     if (this.session.mathfield) {
+      this.session.mathfield.removeEventListener("beforeinput", this.onMathfieldBeforeInput);
       this.session.mathfield.removeEventListener("input", this.onMathfieldInput);
       this.session.mathfield.removeEventListener("menu-select", this.onMathfieldMenuSelect);
       this.session.mathfield.removeEventListener("pointerdown", this.onMathfieldPointerDown);
       this.session.mathfield.removeEventListener("mount", this.onMathfieldMount);
       this.session.mathfield.removeEventListener("unmount", this.onMathfieldUnmount);
     }
+    this.pendingInputFontStyleSnapshot = null;
+    this.pendingInputLatexSnapshot = null;
     this.session.destroy();
   }
 }
