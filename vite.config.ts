@@ -11,6 +11,21 @@ const isDev = env.NODE_ENV === 'development';
 
 const outputDir = isDev ? "dev" : "dist";
 
+const baseStaticCopyTargets = [
+    { src: "./README*.md", dest: "./" },
+    { src: "./plugin.json", dest: "./" },
+    { src: "./preview.png", dest: "./" },
+    { src: "./icon.png", dest: "./" },
+    { src: "./CHANGELOG_zh_CN.md", dest: "./" },
+    { src: "./CHANGELOG_en_US.md", dest: "./" },
+    { src: "./asset/**/*", dest: "./" },
+];
+
+const devOnlyStaticCopyTargets = [
+    { src: "./CHANGELOG.md", dest: "./" },
+    { src: "./LICENSE", dest: "./" },
+];
+
 console.log("isDev=>", isDev);
 console.log("outputDir=>", outputDir);
 
@@ -35,15 +50,8 @@ export default defineConfig({
         }),
         viteStaticCopy({
             targets: [
-                { src: "./README*.md", dest: "./" },
-                { src: "./plugin.json", dest: "./" },
-                { src: "./preview.png", dest: "./" },
-                { src: "./icon.png", dest: "./" },
-                { src: "./CHANGELOG.md", dest: "./" },
-                { src: "./CHANGELOG_zh_CN.md", dest: "./" },
-                { src: "./CHANGELOG_en_US.md", dest: "./" },
-                { src: "./asset/**/*", dest: "./" },
-                { src: "./LICENSE", dest: "./" },
+                ...baseStaticCopyTargets,
+                ...(isDev ? devOnlyStaticCopyTargets : []),
             ],
             structured: true,
         }),
@@ -97,7 +105,7 @@ export default defineConfig({
                 ] : [
                     // Clean up unnecessary files under dist dir
                     cleanupDistFiles({
-                        patterns: ['i18n/*.yaml', 'i18n/*.md'],
+                        patterns: ['i18n/*.yaml', 'i18n/*.md', 'asset/**/*.{png,jpg,jpeg,gif,webp,svg,avif}'],
                         distDir: outputDir
                     }),
                     zipPack({

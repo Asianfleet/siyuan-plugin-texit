@@ -2,7 +2,7 @@
   "name": "siyuan-plugin-texit",
   "author": "Asianfleet",
   "url": "https://github.com/Asianfleet/siyuan-plugin-texit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "minAppVersion": "2.9.0",
   "disabledInPublish": true,
   "backends": ["all"],
