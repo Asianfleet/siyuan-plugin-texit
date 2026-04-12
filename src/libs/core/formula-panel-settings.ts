@@ -39,7 +39,7 @@ export type FormulaPanelSettings = {
  * 公式面板设置在 SiYuan 存储中的完整路径。
  */
 export const FORMULA_PANEL_SETTINGS_STORAGE_PATH =
-  "/data/storage/petal/siyuan-plugin-formula-enhance/formula-panel-settings.json";
+  "/data/storage/petal/siyuan-plugin-texit/formula-panel-settings.json";
 
 /**
  * 公式面板设置文件名。
