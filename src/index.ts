@@ -11,6 +11,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { createFormulaPanelSettingsPanel } from "@/libs/core/formula-panel-settings-panel";
 import { useFormulaPanelSettingsStore } from "@/stores/formula-panel-settings";
 import "@/index.css";
+import { FORMULA_PANEL_SETTINGS_STORAGE_FILE } from "./libs/core/formula-panel-settings";
 
 export default class FormulaEnhance extends Plugin {
   public isMobile: boolean;
@@ -69,7 +70,7 @@ export default class FormulaEnhance extends Plugin {
   }
 
   uninstall() {
-
+    this.removeData(FORMULA_PANEL_SETTINGS_STORAGE_FILE)
   }
 
   onLayoutReady(): void {
